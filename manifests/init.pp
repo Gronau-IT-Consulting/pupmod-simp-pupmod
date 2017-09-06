@@ -339,12 +339,26 @@ class pupmod (
 
     # This is to allow the hosts to boot faster.  It should probably be
     # re-worked.
-    file { '/etc/sysconfig/puppet':
-      ensure  => 'file',
-      owner   => 'root',
-      group   => 'root',
-      mode    => '0644',
-      content => "PUPPET_EXTRA_OPTS='--daemonize'\n"
+    if $facts['os']['name'] in ['RedHat','CentOS'] {
+      file { '/etc/sysconfig/puppet':
+        ensure  => 'file',
+        owner   => 'root',
+        group   => 'root',
+        mode    => '0644',
+        content => "PUPPET_EXTRA_OPTS='--daemonize'\n"
+      }
+    }
+    elsif $facts['os']['name'] in ['Debian','Ubuntu'] {
+      file { '/etc/default/puppet':
+        ensure  => 'file',
+        owner   => 'root',
+        group   => 'root',
+        mode    => '0644',
+        content => "# You may specify parameters to the puppet client here\n#PUPPET_EXTRA_OPTS=--waitforcert=500\n"
+      }
+    }
+    else {
+      fail("OS '${facts['os']['name']}' not supported by '${module_name}'")
     }
 
     # Changing SELinux booleans on a minor update is a horrible idea.
